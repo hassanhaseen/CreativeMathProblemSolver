@@ -1,6 +1,5 @@
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import random
 import time
 
@@ -31,7 +30,7 @@ error_ratings = [
     "90% brainpower, 10% sass"
 ]
 
-# Load Model + Tokenizer
+# ✅ Load Merged Model + Tokenizer
 @st.cache_resource
 def load_model():
     with st.spinner("Loading TinyLlama Model... " + random.choice(loader_emojis)):
@@ -41,7 +40,7 @@ def load_model():
 
 tokenizer, model = load_model()
 
-# Generate Answer Function
+# ✅ Generate Answer Function
 def solve_emoji_math(problem):
     prompt = f"<|startoftext|>Problem: {problem} Solution:"
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
@@ -65,11 +64,11 @@ def solve_emoji_math(problem):
 
     return solution
 
-# Text Input
+# ✅ Text Input
 st.subheader("🔍 Enter Your Emoji Math Problem")
 user_input = st.text_area("Paste your emoji math equation here... (e.g., 🍎 + 🍎 + 🍎 = 12)")
 
-# Solve Button
+# ✅ Solve Button
 if st.button("🛠️ Solve It!"):
     if not user_input.strip():
         st.warning("Please enter a valid emoji equation!")
@@ -85,7 +84,7 @@ if st.button("🛠️ Solve It!"):
         with st.expander("Click to reveal the solution:"):
             st.info(result)
 
-# Footer with Hover
+# ✅ Footer with Hover
 st.markdown("---")
 st.markdown(
     """
