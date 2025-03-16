@@ -52,6 +52,7 @@ def load_model():
 
 
 
+
 tokenizer, model = load_model()
 
 # ✅ Generate Answer Function
