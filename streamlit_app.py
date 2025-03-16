@@ -33,20 +33,24 @@ error_ratings = [
 # ✅ Load Merged Model + Tokenizer
 @st.cache_resource
 def load_model():
-    with st.spinner("Loading Quantized TinyLlama Model... " + random.choice(loader_emojis)):
-
-        # Always load tokenizer from the BASE model repo
+    with st.spinner("Loading Quantized TinyLlama Model..."):
         tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
 
-        # Load YOUR quantized model (weights only)
+        from transformers import BitsAndBytesConfig
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16
+        )
+
         model = AutoModelForCausalLM.from_pretrained(
             "hassanhaseen/TinyLlama-EmojiMathSolver-Quantized",
             device_map="auto",
-            load_in_4bit=True,
-            torch_dtype=torch.bfloat16
+            quantization_config=bnb_config
         )
 
         return tokenizer, model
+
 
 
 
