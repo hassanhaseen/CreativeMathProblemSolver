@@ -34,9 +34,11 @@ error_ratings = [
 @st.cache_resource
 def load_model():
     with st.spinner("Loading Quantized TinyLlama Model... " + random.choice(loader_emojis)):
-        tokenizer = AutoTokenizer.from_pretrained("hassanhaseen/TinyLlama-EmojiMathSolver-Quantized")
 
-        # Load quantized model (BitsAndBytes loads automatically if on HF)
+        # Always load tokenizer from the BASE model repo
+        tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+
+        # Load YOUR quantized model (weights only)
         model = AutoModelForCausalLM.from_pretrained(
             "hassanhaseen/TinyLlama-EmojiMathSolver-Quantized",
             device_map="auto",
@@ -45,6 +47,7 @@ def load_model():
         )
 
         return tokenizer, model
+
 
 
 
