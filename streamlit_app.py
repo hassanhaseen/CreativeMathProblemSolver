@@ -19,8 +19,6 @@ def load_model():
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         torch_dtype=torch.float32,      # ✅ CPU-friendly
-        device_map="cpu",               # ✅ Force CPU
-        low_cpu_mem_usage=True          # ✅ Optional but helps on Streamlit Cloud
     )
 
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
