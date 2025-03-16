@@ -33,14 +33,19 @@ error_ratings = [
 # ✅ Load Merged Model + Tokenizer
 @st.cache_resource
 def load_model():
-    with st.spinner("Loading TinyLlama Model... " + random.choice(loader_emojis)):
-        # Correct tokenizer source!
-        tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+    with st.spinner("Loading Quantized TinyLlama Model... " + random.choice(loader_emojis)):
+        tokenizer = AutoTokenizer.from_pretrained("hassanhaseen/TinyLlama-EmojiMathSolver-Quantized")
 
-        # Merged model repo
-        model = AutoModelForCausalLM.from_pretrained("hassanhaseen/TinyLlama-EmojiMathSolver")
+        # Load quantized model (BitsAndBytes loads automatically if on HF)
+        model = AutoModelForCausalLM.from_pretrained(
+            "hassanhaseen/TinyLlama-EmojiMathSolver-Quantized",
+            device_map="auto",
+            load_in_4bit=True,
+            torch_dtype=torch.bfloat16
+        )
 
         return tokenizer, model
+
 
 
 
