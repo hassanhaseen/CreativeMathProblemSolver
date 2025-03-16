@@ -1,50 +1,60 @@
 import streamlit as st
+import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
-# ✅ Page Config
 st.set_page_config(page_title="Creative Math Problem Solver", page_icon="🧮")
-st.title("🧮 Creative Math Problem Solver")
-st.markdown("Enter an **Emoji Math Problem** and get the solution!")
 
-# ✅ Cache Model Loading
-@st.cache_resource(show_spinner="Loading model... (This may take a while ⏳)")
+st.title("🧠 Creative Math Problem Solver")
+st.caption("Generate creative solutions for emoji math problems using TinyLlama!")
+
+# ✅ Cache the model and tokenizer loading for performance
+@st.cache_resource(show_spinner="Loading model... (⏳)")
 def load_model():
-    model_name = "hassanhaseen/tinyllama-emoji-math-merged"  # ✅ Your merged model repo
+    # Model name (merged fine-tuned model)
+    model_name = "hassanhaseen/tinyllama-emoji-math-merged"
 
-    # Load tokenizer and model (CPU-friendly)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    # ✅ Use base tokenizer (assuming no added tokens)
+    tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+
+    # ✅ Load the fine-tuned model
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype="auto",     # Use auto to prevent CPU conflicts
-        device_map="auto"       # Runs on CPU in Streamlit Cloud
+        torch_dtype="auto",   # Auto-detects CPU/GPU dtype
+        device_map="auto"     # Automatically places on available device
     )
 
-    # Create a pipeline for generation
+    # ✅ Create text generation pipeline
     pipe = pipeline(
         "text-generation",
         model=model,
         tokenizer=tokenizer,
-        max_new_tokens=100,
-        temperature=0.3,
-        top_p=0.9
+        max_new_tokens=100,   # Limit response length
+        temperature=0.5,      # Creativity level (adjust if needed)
+        top_p=0.95            # Nucleus sampling for diversity
     )
-
     return pipe
 
-# ✅ Load the model
+# ✅ Load model
 pipe = load_model()
 st.success("✅ Model Loaded Successfully!")
 
-# ✅ User Input
-user_input = st.text_input("🔢 Enter an Emoji Math Problem:", placeholder="Example: 🐱 + 🐱 = ?")
+# ✅ User input for math problem
+user_input = st.text_area("🔢 Enter an emoji math problem:", height=150)
 
-# ✅ Generate Answer
-if st.button("Solve") and user_input:
-    with st.spinner("Solving your emoji math problem..."):
+if st.button("💡 Generate Solution"):
+    if user_input.strip() == "":
+        st.warning("⚠️ Please enter a math problem!")
+    else:
+        # ✅ Format the prompt (matching fine-tuned training format)
         prompt = f"<|user|>\n{user_input}\n<|assistant|>\n"
-        result = pipe(prompt)[0]["generated_text"]
 
-        # Post-process response (extract answer)
-        answer = result.split("<|assistant|>\n")[-1].strip()
+        # ✅ Generate response
+        with st.spinner("Generating creative solution..."):
+            response = pipe(prompt)
 
-        st.markdown(f"### ✅ Answer:\n{answer}")
+        # ✅ Extract and display response
+        answer = response[0]["generated_text"].split("<|assistant|>\n")[-1].strip()
+        st.subheader("✨ Solution")
+        st.write(answer)
+
+st.caption("Made with ❤️ using TinyLlama")
