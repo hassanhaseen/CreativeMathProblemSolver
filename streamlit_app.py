@@ -15,14 +15,19 @@ def load_model():
     model_name = "hassanhaseen/tinyllama-emoji-math-merged"
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+    # Explicitly turn off quantization config when loading!
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=torch.float32,  # ✅ Use float32 for CPU inference
-        device_map="cpu"
+        torch_dtype=torch.float32,       # ✅ CPU-friendly dtype
+        device_map="cpu",                # ✅ Force CPU
+        low_cpu_mem_usage=True,          # ✅ Helps on Streamlit Cloud
+        quantization_config=None         # ✅ Ignore any quantization setup
     )
 
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
     return pipe
+
 
 pipe = load_model()
 st.success("Model Loaded!")
