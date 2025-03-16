@@ -34,9 +34,15 @@ error_ratings = [
 @st.cache_resource
 def load_model():
     with st.spinner("Loading TinyLlama Model... " + random.choice(loader_emojis)):
-        tokenizer = AutoTokenizer.from_pretrained("hassanhaseen/TinyLlama-EmojiMathSolver")
+        # Correct tokenizer source!
+        tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+
+        # Merged model repo
         model = AutoModelForCausalLM.from_pretrained("hassanhaseen/TinyLlama-EmojiMathSolver")
+
         return tokenizer, model
+
+
 
 tokenizer, model = load_model()
 
