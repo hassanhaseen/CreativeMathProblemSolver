@@ -2,91 +2,70 @@ import streamlit as st
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 import torch
 
-# ✅ Page Config
-st.set_page_config(page_title="Emoji Math Solver", page_icon="🧮", layout="centered")
+# ✅ Page Configuration
+st.set_page_config(page_title="Creative Math Problem Solver 🤖➕", page_icon="🧮", layout="centered")
 
-# ✅ Custom CSS
-st.markdown("""
-    <style>
-    .main {
-        background-color: #0f1117;
-        color: white;
-    }
-    .stButton>button {
-        color: #fff;
-        background-color: #4CAF50;
-        padding: 0.6em 1.2em;
-        border-radius: 8px;
-        border: none;
-    }
-    footer {
-        visibility: hidden;
-    }
-    .footer-container {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-        text-align: center;
-        color: white;
-        padding: 10px;
-    }
-    .footer-container:hover:after {
-        content: " Hassan Haseen & Sameen Muzaffar";
-        color: #ff4b4b;
-        display: block;
-        font-size: 14px;
-        margin-top: 4px;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# ✅ Title and Description
+st.title("🤖 Creative Math Problem Solver")
+st.subheader("Enter an Emoji-based Math Problem and get your solution instantly!")
 
-# ✅ Footer
-st.markdown('<div class="footer-container">Created with ❤️ by Team CodeRunners</div>', unsafe_allow_html=True)
+# ✅ Loader Spinner while model loads
+with st.spinner('Loading model... (first time may take a few seconds)'):
+    @st.cache_resource(show_spinner=False)
+    def load_model():
+        model_name = "hassanhaseen/tinyllama-emoji-math-merged"
 
-# ✅ Title + Intro
-st.title("🧮 Emoji Math Solver")
-st.subheader("Solve fun math problems written in emojis!")
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.bfloat16,
+            device_map="auto"
+        )
 
-# ✅ Load Model (with caching)
-@st.cache_resource
-def load_model():
-    model_id = "hassanhaseen/tinyllama-emoji-math-merged"
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.bfloat16)
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
-    return pipe
+        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+        return pipe
 
-pipe = load_model()
+    pipe = load_model()
+
+st.success('Model Loaded!')
 
 # ✅ Input Area
-user_input = st.text_input("🔢 Enter an Emoji Math Problem:", placeholder="e.g., 🔟 ➕ 5️⃣ = ❓")
+user_input = st.text_input("🔢 Enter an Emoji Math Problem:", placeholder="e.g. 🍎🍎 + 🍎 = ❓")
 
-# ✅ Generate Button
-if st.button("🔍 Solve"):
-    if user_input.strip() == "":
-        st.warning("Please enter a math problem using emojis!")
-    else:
-        with st.spinner("Thinking... 🤔"):
-            prompt = f"<|user|>\n{user_input}\n<|assistant|>\n"
-            output = pipe(prompt, max_length=100, do_sample=True, top_p=0.9, temperature=0.5)
-            answer = output[0]['generated_text'].split("<|assistant|>")[-1].strip()
+if user_input:
+    with st.spinner('Generating answer...'):
+        prompt = f"<|user|>\n{user_input}\n<|assistant|>\n"
+        output = pipe(prompt, max_new_tokens=50, do_sample=True, temperature=0.7)
 
-        # ✅ Reveal Answer
-        with st.expander("✅ Click to Reveal Answer"):
-            st.success(f"🎉 **Answer:** {answer}")
+        # Extract generated text after <|assistant|> token
+        raw_output = output[0]['generated_text']
+        response = raw_output.split("<|assistant|>")[-1].strip()
 
-        # ✅ Feedback
-        st.markdown("---")
-        st.markdown("### 🙌 How was the answer?")
-        col1, col2, col3, col4, col5 = st.columns(5)
+        st.markdown("### ✅ Problem")
+        st.info(user_input)
 
-        with col1:
-            st.button("⭐ 1", key="1")
-        with col2:
-            st.button("⭐ 2", key="2")
-        with col3:
-            st.button("⭐ 3", key="3")
-        with col4:
-            st.button("⭐ 4", key="4")
-        with col5:
-            st.button("⭐ 5", key="5")
+        # Reveal Answer Box
+        with st.expander("📝 Click to reveal the answer"):
+            st.success(response)
+
+# ✅ Footer with hover effect
+st.markdown("""
+    <style>
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            color: #888;
+        }
+        .footer span:hover {
+            color: #f63366;
+        }
+    </style>
+    <div class="footer">
+        Created with ❤️ by <span title='Hassan Haseen & Sameen Muzaffar'>Team CodeRunners</span>
+    </div>
+""", unsafe_allow_html=True)
