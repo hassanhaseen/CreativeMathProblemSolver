@@ -9,17 +9,15 @@ st.markdown("Enter an **Emoji Math Problem** and get the solution!")
 # ✅ Cache Model Loading
 @st.cache_resource(show_spinner="Loading model... (This may take a while ⏳)")
 def load_model():
-    model_name = "hassanhaseen/tinyllama-emoji-math-merged"  # ✅ Your merged model repo
+    model_name = "hassanhaseen/tinyllama-emoji-math-merged"
 
-    # Load tokenizer and model (CPU-friendly)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype="auto",     # Use auto to prevent CPU conflicts
-        device_map="auto"       # Runs on CPU in Streamlit Cloud
+        torch_dtype="auto",        # Optional on CPU
+        # device_map="auto",       # Remove this!
     )
 
-    # Create a pipeline for generation
     pipe = pipeline(
         "text-generation",
         model=model,
@@ -28,8 +26,8 @@ def load_model():
         temperature=0.3,
         top_p=0.9
     )
-
     return pipe
+
 
 # ✅ Load the model
 pipe = load_model()
