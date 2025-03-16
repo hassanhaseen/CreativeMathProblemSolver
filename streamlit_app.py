@@ -16,18 +16,15 @@ def load_model():
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-    # Explicitly turn off quantization config when loading!
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=torch.float32,       # ✅ CPU-friendly dtype
-        device_map="cpu",                # ✅ Force CPU
-        low_cpu_mem_usage=True,          # ✅ Helps on Streamlit Cloud
-        quantization_config=None         # ✅ Ignore any quantization setup
+        torch_dtype=torch.float32,      # ✅ CPU-friendly
+        device_map="cpu",               # ✅ Force CPU
+        low_cpu_mem_usage=True          # ✅ Optional but helps on Streamlit Cloud
     )
 
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
     return pipe
-
 
 pipe = load_model()
 st.success("Model Loaded!")
