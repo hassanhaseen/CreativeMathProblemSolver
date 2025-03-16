@@ -19,8 +19,7 @@ def load_model():
     # ✅ Load the fine-tuned model
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype="auto",   # Auto-detects CPU/GPU dtype
-        device_map="auto"     # Automatically places on available device
+        torch_dtype=torch.float32
     )
 
     # ✅ Create text generation pipeline
