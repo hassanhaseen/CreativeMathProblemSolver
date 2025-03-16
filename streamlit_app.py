@@ -1,6 +1,8 @@
-# ✅ Streamlit App for Emoji Math Solver
+# ✅ Streamlit App for Emoji Math Solver (Base Model + LoRA Adapter)
+
 import streamlit as st
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from peft import PeftModel
 import torch
 
 # ✅ Page Config
@@ -18,12 +20,30 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-# ✅ Load Model and Tokenizer (cached for speed)
+# ✅ Load Model and Tokenizer (Base + LoRA Adapter)
 @st.cache_resource
 def load_model():
-    model_id = "hassanhaseen/deepseek-coder-emoji-math-lora"
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.bfloat16, device_map="auto")
+    # Base model
+    base_model_id = "deepseek-ai/deepseek-coder-1.3b-instruct"
+    adapter_model_id = "hassanhaseen/deepseek-coder-emoji-math-lora"
+    
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(base_model_id, trust_remote_code=True)
+    
+    # Load base model
+    base_model = AutoModelForCausalLM.from_pretrained(
+        base_model_id,
+        torch_dtype=torch.bfloat16,
+        device_map="auto",
+        trust_remote_code=True
+    )
+    
+    # Apply LoRA adapter
+    model = PeftModel.from_pretrained(base_model, adapter_model_id)
+
+    # Optional merge for faster inference (more memory though)
+    # model = model.merge_and_unload()
+
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
     return pipe
 
