@@ -30,13 +30,11 @@ error_ratings = [
     "90% brainpower, 10% sass"
 ]
 
-# ✅ Load Merged Model + Tokenizer
 @st.cache_resource
 def load_model():
     with st.spinner("Loading Quantized TinyLlama Model..."):
         tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
 
-        from transformers import BitsAndBytesConfig
         bnb_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
@@ -50,11 +48,6 @@ def load_model():
         )
 
         return tokenizer, model
-
-
-
-
-
 
 
 tokenizer, model = load_model()
