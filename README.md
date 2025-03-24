@@ -23,6 +23,12 @@ Welcome to **Emoji Math Solver** — an AI-powered app that decodes emoji-based 
 
 ---
 
+## ✍️ Medium Blog
+
+🔗 [Read the Medium Blog](https://medium.com/@hassanhaseen/solving-emoji-math-with-ai-building-creative-math-problem-solver-83f7296dddec)  
+
+---
+
 ## 📸 Preview
 
 | Emoji Math Solver |
