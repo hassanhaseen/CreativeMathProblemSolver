@@ -1,72 +1,73 @@
 import streamlit as st
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
-# 🌈 Streamlit Page Config
-st.set_page_config(
-    page_title="Emoji Math Solver",
-    page_icon="🧠",
-    layout="centered"
-)
+# ✅ Streamlit Page Config
+st.set_page_config(page_title="Emoji Math Solver", page_icon="🧠", layout="centered")
 
-# 🎨 Custom CSS Styling
+# ✅ Custom Style (no config.toml)
 st.markdown("""
     <style>
+    html, body, [class*="css"] {
+        font-family: 'Segoe UI', sans-serif;
+    }
     .main {
-        background-color: #fdfdfd;
+        background-color: #fefefe;
     }
     .stTextArea textarea {
-        font-size: 18px;
-        line-height: 1.6;
+        background-color: #1e1e1e !important;
+        color: #f8f8f2 !important;
+        border: 1px solid #f63366;
+        font-size: 18px !important;
+        padding: 15px;
+        border-radius: 10px;
     }
-    .stButton button {
-        background-color: #F63366;
+    .stButton>button {
+        background-color: #f63366;
         color: white;
         font-size: 18px;
-        padding: 0.6em 1.2em;
         border-radius: 8px;
-        margin-top: 10px;
+        padding: 10px 24px;
+        margin-top: 12px;
+        transition: 0.3s;
     }
-    .stButton button:hover {
+    .stButton>button:hover {
         background-color: #e10050;
-        color: white;
+        color: #ffffff;
+        transform: scale(1.02);
     }
-    .emoji-title {
-        font-size: 40px;
+    .title-style {
         text-align: center;
-        margin-bottom: 0.2em;
+        font-size: 3rem;
+        margin-bottom: 0.25rem;
     }
-    .emoji-subtitle {
-        font-size: 18px;
+    .subtitle-style {
         text-align: center;
-        color: #555;
-        margin-bottom: 2em;
+        font-size: 1.2rem;
+        color: #444;
+        margin-bottom: 2rem;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# 🧠 App Header
-st.markdown('<div class="emoji-title">🧠 Emoji Math Solver</div>', unsafe_allow_html=True)
-st.markdown('<div class="emoji-subtitle">AI-powered fun for emoji-based math riddles! 🤖➕🍎➗🚗</div>', unsafe_allow_html=True)
+# 🧠 Title
+st.markdown('<div class="title-style">🧠 Emoji Math Solver</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle-style">AI-powered fun for emoji-based math riddles! 🤖➕🍎➗🚗</div>', unsafe_allow_html=True)
 
-# 📦 Load model + tokenizer
+# 📦 Load model
 with st.spinner("🔄 Loading model from Hugging Face... please wait"):
     tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
     model = AutoModelForCausalLM.from_pretrained("hassanhaseen/emoji-math-distilgpt2")
     generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
-# ✍️ User Input
-prompt = st.text_area(
-    "📝 Enter your Emoji Math Problem below (must start with `Problem:`):",
-    value="Problem: 🍎 + 🍎 + 🍎 = 15",
-    height=150
-)
+# 📝 Input Box
+prompt = st.text_area("🔢 Your Emoji Math Problem (start with `Problem:`)", value="Problem: 🍎 + 🍎 + 🍎 = 15", height=140)
 
-# 🧠 Solve Button
-if st.button("🧮 Solve My Emoji Problem"):
+# 🧮 Solve Button
+if st.button("🧠 Solve My Emoji Problem"):
     if not prompt.strip().lower().startswith("problem:"):
-        st.error("⚠️ Please make sure your input starts with `Problem:`")
+        st.error("⚠️ Make sure your input starts with `Problem:`")
     else:
-        with st.spinner("🔍 Thinking... solving your problem!"):
+        with st.spinner("🧠 Solving..."):
             result = generator(
                 prompt,
                 max_length=128,
@@ -75,19 +76,11 @@ if st.button("🧮 Solve My Emoji Problem"):
                 truncation=True,
                 pad_token_id=tokenizer.eos_token_id
             )
-            full_output = result[0]["generated_text"]
-            if "Solution:" in full_output:
-                solution = full_output.split("Solution:")[-1].strip()
+            output = result[0]["generated_text"]
+            if "Solution:" in output:
+                solution = output.split("Solution:")[-1].strip()
             else:
-                solution = "⚠️ Hmm... I couldn’t detect a solution. Try a different input?"
+                solution = "⚠️ Couldn't generate a valid solution."
 
-        # ✅ Display Result
-        st.success("✅ Solution Found!")
-        st.markdown(f"### 🧾 `{solution}`")
-
-# 👣 Footer
-st.markdown("""
----
-Made with ❤️ by [Hassan Haseen](https://github.com/hassanhaseen)  
-Built using 🤗 Transformers and deployed via 🚀 Streamlit Cloud
-""")
+        st.success("✅ Here's your solution!")
+        st.code(solution)
