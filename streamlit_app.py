@@ -75,7 +75,7 @@ st.markdown(
             color: #FF4B4B;
         }
         .footer span::after {
-            content: "Hassan Haseen";
+            content: "Hassan Haseen & Sameen Muzaffar";
             position: absolute;
             bottom: 125%;
             left: 50%;
