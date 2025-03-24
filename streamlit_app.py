@@ -1,140 +1,35 @@
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import random
-import time
+from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
-# Page config
-st.set_page_config(
-    page_title="🧮 Emoji Math Solver",
-    page_icon="🧠",
-    layout="centered"
-)
+# 🎯 Setup page
+st.set_page_config(page_title="Emoji Math Solver", page_icon="🧮", layout="centered")
 
-# Title
-st.title("🧮 Emoji Math Solver")
-st.caption("Powered by TinyLlama + Team CodeRunners")
+# 🎨 Title & Instructions
+st.title("🧠 Emoji Math Solver")
+st.markdown("Let the AI solve your emoji-based math problems! Just type a problem like `Problem: 🍎 + 🍎 + 🍎 = 15` and hit solve.")
 
-# Sidebar Controls
-st.sidebar.header("⚙️ Settings")
-temperature = st.sidebar.slider("Creativity (Temperature)", 0.1, 1.0, 0.5)
+# 🔁 Load model and tokenizer (no cache to avoid cloud issues)
+@st.spinner("Loading model from Hugging Face 🤗... Please wait."):
+    tokenizer = AutoTokenizer.from_pretrained("hassanhaseen/emoji-math-distilgpt2")
+    model = AutoModelForCausalLM.from_pretrained("hassanhaseen/emoji-math-distilgpt2")
+    generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
-# Spinner loader emoji
-loader_emojis = ["🧐", "🤖", "🔧", "⚙️", "💡", "🔢"]
+# ✍️ Text input
+prompt = st.text_area("📥 Enter your Emoji Math Problem (must start with `Problem:`):", value="Problem: 🍎 + 🍎 + 🍎 = 15")
 
-# Error ratings
-error_ratings = [
-    "99% accurate, 1% fun",
-    "100% math wizardry",
-    "80% genius, 20% emoji master",
-    "Mathified with style 😎",
-    "90% brainpower, 10% sass"
-]
-
-@st.cache_resource
-def load_model():
-    with st.spinner("Loading Quantized TinyLlama Model..."):
-        tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
-
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16
-        )
-
-        model = AutoModelForCausalLM.from_pretrained(
-            "hassanhaseen/TinyLlama-EmojiMathSolver-Quantized",
-            device_map="auto",
-            quantization_config=bnb_config
-        )
-
-        return tokenizer, model
-
-
-tokenizer, model = load_model()
-
-# ✅ Generate Answer Function
-def solve_emoji_math(problem):
-    prompt = f"<|startoftext|>Problem: {problem} Solution:"
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-
-    outputs = model.generate(
-        **inputs,
-        max_length=100,
-        temperature=temperature,
-        top_p=0.95,
-        do_sample=True,
-        repetition_penalty=1.2,
-        num_return_sequences=1
-    )
-
-    decoded_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-    if "Solution:" in decoded_output:
-        solution = decoded_output.split("Solution:")[-1].strip()
+# 🧠 Solve Button
+if st.button("🧠 Solve"):
+    if not prompt.strip().startswith("Problem:"):
+        st.error("Please make sure your input starts with `Problem:`")
     else:
-        solution = "Oops! Couldn't figure it out 🤷‍♂️"
+        with st.spinner("Generating solution..."):
+            result = generator(prompt, max_length=128, num_return_sequences=1, do_sample=True)
+            full_output = result[0]["generated_text"]
+            if "Solution:" in full_output:
+                solution = full_output.split("Solution:")[-1].strip()
+            else:
+                solution = "Couldn't find a solution in the output."
 
-    return solution
-
-# ✅ Text Input
-st.subheader("🔍 Enter Your Emoji Math Problem")
-user_input = st.text_area("Paste your emoji math equation here... (e.g., 🍎 + 🍎 + 🍎 = 12)")
-
-# ✅ Solve Button
-if st.button("🛠️ Solve It!"):
-    if not user_input.strip():
-        st.warning("Please enter a valid emoji equation!")
-    else:
-        with st.spinner("Crunching numbers " + random.choice(loader_emojis)):
-            time.sleep(1)  # Small delay for UX
-            result = solve_emoji_math(user_input)
-
-        st.success("✅ Problem Solved!")
-        st.markdown(f"**🧮 Error Rating:** {random.choice(error_ratings)}")
-
-        # Reveal Solution
-        with st.expander("Click to reveal the solution:"):
-            st.info(result)
-
-# ✅ Footer with Hover
-st.markdown("---")
-st.markdown(
-    """
-    <style>
-        .footer {
-            text-align: center;
-            font-size: 14px;
-            color: #888888;
-        }
-        .footer span {
-            position: relative;
-            cursor: pointer;
-            color: #FF4B4B;
-        }
-        .footer span::after {
-            content: "Hassan Haseen & Sameen Muzaffar";
-            position: absolute;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #333;
-            color: #fff;
-            padding: 5px 10px;
-            border-radius: 8px;
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            font-size: 12px;
-        }
-        .footer span:hover::after {
-            opacity: 1;
-        }
-    </style>
-
-    <div class='footer'>
-        Created with ❤️ by <span>Team CodeRunners</span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+            # ✅ Display result
+            st.success("✅ Solution")
+            st.code(solution, language="text")
