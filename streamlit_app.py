@@ -8,8 +8,8 @@ st.set_page_config(page_title="Emoji Math Solver", page_icon="🧮", layout="cen
 st.title("🧠 Emoji Math Solver")
 st.markdown("Let the AI solve your emoji-based math problems! Just type a problem like `Problem: 🍎 + 🍎 + 🍎 = 15` and hit solve.")
 
-# 🔁 Load model and tokenizer (no cache to avoid cloud issues)
-@st.spinner("Loading model from Hugging Face 🤗... Please wait."):
+# 🔁 Load model and tokenizer
+with st.spinner("Loading model from Hugging Face 🤗... Please wait."):
     tokenizer = AutoTokenizer.from_pretrained("hassanhaseen/emoji-math-distilgpt2")
     model = AutoModelForCausalLM.from_pretrained("hassanhaseen/emoji-math-distilgpt2")
     generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
